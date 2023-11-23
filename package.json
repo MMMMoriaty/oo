@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "private": false,
   "author": "wanghaiqing <wanghaiqing@sensetime.com>",
   "scripts": {
     "dev": "max dev",

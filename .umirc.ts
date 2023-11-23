@@ -9,7 +9,10 @@ export default defineConfig({
   layout: {
     title: '@umijs/max',
   },
+  outputPath: 'docs',
+  publicPath: 'https://mmmmoriaty.github.io/oo/',
   mfsu: {},
+  history: {  type: 'hash' },
   routes: [
     {
       path: '/',
