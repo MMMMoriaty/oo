@@ -10,28 +10,21 @@ export default defineConfig({
     title: '@umijs/max',
   },
   outputPath: 'docs',
-  publicPath: 'https://mmmmoriaty.github.io/oo/',
-  mfsu: {},
+  publicPath: process.env.NODE_ENV == 'development' ? '' : 'https://mmmmoriaty.github.io/oo/',
+  fastRefresh: true,
+  mfsu: {
+  },
   history: {  type: 'hash' },
   routes: [
     {
       path: '/',
-      redirect: '/home',
+      redirect: '/monitor',
     },
     {
-      name: '首页',
-      path: '/home',
-      component: './Home',
-    },
-    {
-      name: '权限演示',
-      path: '/access',
-      component: './Access',
-    },
-    {
-      name: ' CRUD 示例',
-      path: '/table',
-      component: './Table',
+      name: '因子看板',
+      wrappers: ['@/wrapper/theme'],
+      path: '/monitor',
+      component: './Monitor',
     },
   ],
   npmClient: 'yarn',
