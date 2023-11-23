@@ -17,4 +17,12 @@ export default {
       message: 'success',
     });
   },
+
+  'POST /api/v1/sendWarnMessage': (req: any, res: any) => {
+    res.json({
+      code: 0,
+      data: null,
+      message: 'success',
+    });
+  },
 };

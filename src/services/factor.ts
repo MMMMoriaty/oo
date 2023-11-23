@@ -7,6 +7,7 @@ export async function getFactorType(
     page_size?: number;
     sorter?: string,
     conditions?: any,
+    types?: any,
   },
   options?: { [key: string]: any },
 ) {
@@ -24,6 +25,20 @@ export async function getFactorList(
   options?: any,
 ) {
   return request('/api/v1/queryFactorList', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+export async function sendWarnMessage(
+  body?: any,
+  options?: any,
+) {
+  return request('/api/v1/sendWarnMessage', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

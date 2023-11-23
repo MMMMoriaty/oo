@@ -1,4 +1,4 @@
-import { getFactorType, getFactorList } from '@/services/factor';
+import { getFactorType, getFactorList, sendWarnMessage } from '@/services/factor';
 import {
   ActionType,
   PageContainer,
@@ -12,10 +12,11 @@ import {
   ProFormDigit,
   FooterToolbar,
 } from '@ant-design/pro-components';
-import { Button, message, Space, Select, Form } from 'antd';
+import { Button, message, Space, Select, Form, Divider } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import { FACTOR_QUOTAS, OPERATORS} from '@/constants'
 import moment from 'moment'
+import _ from 'lodash'
 
 const TableList: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
@@ -27,6 +28,7 @@ const TableList: React.FC<unknown> = () => {
   const [keyword, setKeyword] = useState('')
   const [conditions, setConditions] = useState([])
   const [filters, setFilters] = useState([])
+  const [chosenTypes, setChosenTypes] = useState([])
 
   useEffect(() => {
     fetchTypes()
@@ -36,8 +38,13 @@ const TableList: React.FC<unknown> = () => {
     const { data, code } = await getFactorType()
     if (code == 0) {
       setTypes(data?.list || [])
+      setChosenTypes(data?.list?.map((v) => v.id) || [])
     }
   }
+
+  const fresh = _.debounce(async (v) => {
+    await actionRef.current.reload()
+  }, 500)
 
   const getColumns = () => {
     let columns = [
@@ -87,7 +94,10 @@ const TableList: React.FC<unknown> = () => {
       dataIndex: '',
       width: 80,
       render: (text, record) => {
-        return <a onClick={() => {
+        return <a onClick={async () => {
+          await sendWarnMessage({
+            factorIds: [record?.factor_id],
+          })
           message.success(`已对"${record.name}因子发出告警通知"`)
         }}>告警</a>
       },
@@ -111,6 +121,22 @@ const TableList: React.FC<unknown> = () => {
           }
         }
       }}
+      onValuesChange={(changedValues, values) => {
+        const { filters, types: formTypes } = values
+        let needFresh = false
+        if (formTypes?.length !== types?.length) {
+          setChosenTypes(formTypes)
+          needFresh = true
+        }
+        let validFilters = filters?.filter((v) => v?.field && v?.operator && (v?.value || v?.value == 0))
+        setConditions(validFilters)
+        if (changedValues.hasOwnProperty('filters') && validFilters?.length > 0) {
+          needFresh = true
+        }
+        if (needFresh) {
+          fresh()
+        }
+      }}
     >
       <ProCard
         style={{ marginBottom: 16 }}
@@ -128,6 +154,7 @@ const TableList: React.FC<unknown> = () => {
           placeholder={"请选择因子分类"}
         />}
       >
+        <Divider style={{ margin: '12px 0px' }}/>
         <ProFormList
           name={"filters"}
           creatorButtonProps={{
@@ -138,9 +165,10 @@ const TableList: React.FC<unknown> = () => {
           copyIconProps={false}
         >
           <ProFormGroup>
-            <ProFormText
+            <ProFormSelect
               name="field"
               placeholder="筛选项"
+              options={FACTOR_QUOTAS.map((v) => ({ label: v, value: v}))}
               style={{ width: 240 }}
             />
             <ProFormSelect
@@ -174,29 +202,30 @@ const TableList: React.FC<unknown> = () => {
         scroll={{x: 'max-content'}}
         options={{
           search: {
-            onSearch: (v) => {
-              actionRef.current.reload()
-            },
-            onChange: (e) => {
-              setKeyword(e?.target?.value)
-            },
-            value: keyword,
             placeholder: '因子名、因子描述'
           }
         }}
         request={async (params, sorter, filter) => {
           const { data, code } = await getFactorList({
-            keyword,
+            keyword: params.keyword ?? '',
             page: params.current,
             page_size: params.pageSize,
             sorter,
             conditions,
+            types: chosenTypes,
           });
+          console.log('params', {
+            keyword: params.keyword ?? '',
+            page: params.current,
+            page_size: params.pageSize,
+            sorter,
+            conditions,
+            types: chosenTypes,
+          })
           if (code == 0) {
             return {
               data: data?.list || [],
               success: true,
-              total: data?.total,
             };
           }
         }}
@@ -207,7 +236,12 @@ const TableList: React.FC<unknown> = () => {
         tableAlertOptionRender={() => {
           return (
             <Space size={16}>
-              <a onClick={() => message.success(`已对${selectedRows?.length}条因子发出告警`)}>批量告警</a>
+              <a onClick={async () => {
+                await sendWarnMessage({
+                  factorIds: selectedRows?.map((v) => v?.factor_id)
+                })
+                message.success(`已对${selectedRows?.length}条因子发出告警`)
+              }}>批量告警</a>
               <a onClick={() => actionRef.current.clearSelected()}>取消选择</a>
             </Space>
           );

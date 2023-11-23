@@ -15,6 +15,7 @@
     "@ant-design/pro-components": "^2.4.4",
     "@umijs/max": "^4.0.88",
     "antd": "^5.4.0",
+    "lodash": "^4.17.21",
     "moment": "^2.29.4"
   },
   "devDependencies": {

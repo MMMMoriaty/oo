@@ -26,6 +26,11 @@ export default defineConfig({
       path: '/monitor',
       component: './Monitor',
     },
+    {
+      name: '说明文档',
+      path: '/readme',
+      component: './Doc',
+    }
   ],
   npmClient: 'yarn',
 });
