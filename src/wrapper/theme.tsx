@@ -32,7 +32,7 @@ export default () => {
     }
 
     setThemeToken(theme)
-    console.log('%c%s', 'color: green; font-size: 16px;', process.env.NODE_ENV)
+    console.log('%c%s', 'color: green; font-size: 16px;', 'current env: ' + process.env.NODE_ENV)
   }, [])
 
   return <ConfigProvider
